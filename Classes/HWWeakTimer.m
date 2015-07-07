@@ -67,16 +67,23 @@
                                       block:(HWTimerHandler)block
                                    userInfo:(id)userInfo
                                     repeats:(BOOL)repeats {
+    NSMutableArray *userInfoArray = [NSMutableArray arrayWithObject:[block copy]];
+    if (userInfo != nil) {
+        [userInfoArray addObject:userInfo];
+    }
     return [self scheduledTimerWithTimeInterval:interval
                                          target:self
                                        selector:@selector(_timerBlockInvoke:)
-                                       userInfo:@[[block copy], userInfo]
+                                       userInfo:[userInfoArray copy]
                                         repeats:repeats];
 }
 
 + (void)_timerBlockInvoke:(NSArray*)userInfo {
     HWTimerHandler block = userInfo[0];
-    id info = userInfo[1];
+    id info = nil;
+    if (userInfo.count == 2) {
+        info = userInfo[1];
+    }
     // or `!block ?: block();` @sunnyxx
     if (block) {
         block(info);
