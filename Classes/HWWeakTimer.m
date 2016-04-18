@@ -36,7 +36,7 @@
     if(self.target) {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-        [self.target performSelector:self.selector withObject:timer.userInfo afterDelay:0.0f];
+        [self.target performSelector:self.selector withObject:timer.userInfo afterDelay:0.0f inModes:@[NSRunLoopCommonModes]];
 #pragma clang diagnostic pop
     } else {
         [self.timer invalidate];
@@ -55,11 +55,15 @@
     HWWeakTimerTarget* timerTarget = [[HWWeakTimerTarget alloc] init];
     timerTarget.target = aTarget;
     timerTarget.selector = aSelector;
-    timerTarget.timer = [NSTimer scheduledTimerWithTimeInterval:interval
-                                                         target:timerTarget
-                                                       selector:@selector(fire:)
-                                                       userInfo:userInfo
-                                                        repeats:repeats];
+    
+    NSTimer *timer = [NSTimer timerWithTimeInterval:interval
+                                             target:timerTarget
+                                           selector:@selector(fire:)
+                                           userInfo:userInfo
+                                            repeats:repeats];
+
+    [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];
+    timerTarget.timer = timer;
     return timerTarget.timer;
 }
 
